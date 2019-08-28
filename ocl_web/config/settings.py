@@ -29,6 +29,8 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 class Common(Configuration):
     """ manage.py Command 'settings' to setup environment """
 
+    BASE_URL = values.Value(default='http://localhost:7000',environ_name='BASE_URL', environ_prefix=None)
+
     DEFAULT_FROM_EMAIL = 'noreply@openconceptlab.org'
     ACCOUNT_EMAIL_SUBJECT_PREFIX = '[openconceptlab.org] '
 
@@ -336,12 +338,8 @@ class Common(Configuration):
     # API_TOKEN = 'Token ' + '%s' % os.environ.get('OCL_API_TOKEN')
     API_HOST = values.Value(default='http://172.17.0.1:8000',environ_name='OCL_API_HOST', environ_prefix=None)
     API_TOKEN = values.Value(default='891b4b17feab99f3ff7e5b5d04ccc5da7aa96da6',environ_name='OCL_API_TOKEN', environ_prefix=None)
-    API_ANON_TOKEN = values.Value(default='891b4b17feab99f3ff7e5b5d04ccc5da7aa96da6', environ_name='OCL_ANON_API_TOKEN',
-                             environ_prefix=None)
 
 class Local(Common):
-    BASE_URL = 'http://localhost:7000'
-
     """ Local class """
     DEBUG = values.BooleanValue(True)
     TEMPLATE_DEBUG = DEBUG
@@ -374,8 +372,6 @@ class Local(Common):
     ########## Your local stuff: Below this line define 3rd party libary settings
 
 class Qa(Common):
-    BASE_URL = 'https://qa.openconceptlab.org'
-
     """ Local class """
     ########### SECRET KEY
     SECRET_KEY = values.SecretValue(environ_prefix="", environ_name="SECRET_KEY")
@@ -404,8 +400,6 @@ class Qa(Common):
     ########## end django-debug-toolbar
 
 class Production(Common):
-    BASE_URL = 'https://openconceptlab.org'
-
     """ Production class -- the default """
     ########### SECRET KEY
     SECRET_KEY = values.SecretValue(environ_prefix="", environ_name="SECRET_KEY")
@@ -497,8 +491,6 @@ class Production(Common):
 
 
 class Staging(Production):
-    BASE_URL = 'https://staging.openconceptlab.org'
-
     ########## INSTALLED_APPS
 
     INSTALLED_APPS = Common.INSTALLED_APPS

@@ -40,20 +40,17 @@ class OclApi(object):
 
         # The admin api key should only be used for admin functions (duh)
         self.admin_api_key = settings.API_TOKEN
-        self.anon_api_key = settings.API_ANON_TOKEN
         self.url = None
         self.api_key = None
         self.include_facets = facets
 
         if admin:
-            print self.admin_api_key
             self.headers['Authorization'] = 'Token %s' % self.admin_api_key
         else:
             if request:
-                # Todo: the KEY constant needs to be somewhere else
-                key = request.session.get(SESSION_TOKEN_KEY, self.anon_api_key)
                 self.api_key = request.session.get(SESSION_TOKEN_KEY, None)
-                self.headers['Authorization'] = 'Token %s' % key
+                if self.api_key:
+                    self.headers['Authorization'] = 'Token %s' % self.api_key
 
     def debug_result(self, results):
         """
@@ -72,7 +69,7 @@ class OclApi(object):
                                                               sort_keys=True, indent=4,
                                                               separators=(',', ': '))))
             except json.JSONDecodeError:
-                self.logger.error('JSON: Error decoding it: %s' % results.content[:40])
+                self.logger.error('%s %s JSON: Error decoding it: %s' % (results.request.method, results.request.path_url, results.content[:40]))
         else:
             self.logger.debug('%s no content.' % results.request.method)
 
@@ -289,13 +286,16 @@ class OclApi(object):
         return result
 
 
-    def get_user_auth(self, username, password):
+    def get_user_auth(self, username, password, hashed=True):
         """
         Get the user AUTH token for the specified user.
         :param username: is a string containing the user name.
         :returns: ??
         """
-        result = self.post('users', 'login', username=username, password=password)
+        if hashed:
+            result = self.post('users', 'login', username=username, hashed_password=password)
+        else:
+            result = self.post('users', 'login', username=username, password=password)
         return result
 
 
@@ -303,7 +303,7 @@ class OclApi(object):
         """
         sync password with backend
         """
-        result = self.post('users/%s/' % user.username, hashed_password=user.password)
+        result = self.post('users/%s' % user.username, hashed_password=user.password)
         return result
 
     def extract_names(self, names):
@@ -559,26 +559,5 @@ class OclApi(object):
         return result
 
     def get_all_collections_for_user(self, username):
-        return self.get_user_collections(username) + self.get_user_org_collections(username)
-
-    def get_user_collections(self, username):
-        if self.include_facets:
-            return self.get('users', username, 'collections', params={'limit': 0}).json()['results']
-        else:
-            return self.get('users', username, 'collections', params={'limit': 0}).json()
-
-    def get_user_org_collections(self, username):
-        user_orgs = self.get('users', username, 'orgs', params={'limit': 0}).json()
-        all_org_collections = []
-
-        if self.include_facets:
-            for org in user_orgs:
-                org_collections = self.get('orgs', org['id'], 'collections', params={'limit': 0}).json()['results']
-                all_org_collections += org_collections
-        else:
-            for org in user_orgs:
-                org_collections = self.get('orgs', org['id'], 'collections', params={'limit': 0}).json()
-                all_org_collections += org_collections
-
-        return all_org_collections if len(all_org_collections) > 0 else []
+        return self.get('collections', params={'user': username, 'limit': 0}).json()
 

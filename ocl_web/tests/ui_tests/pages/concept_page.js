@@ -8,6 +8,7 @@ var ConceptPage = function () {
     this.updateButton = element(by.id("update-concept"));
     this.editLink = element(by.id("edit-concept"));
     this.descriptionField = element(by.model('description.description'));
+    this.descriptionTypeField = element(by.model('description.description_type'));
     this.deleteDescriptionAreaButton = element(by.id("id-delete-description"));
     this.deleteNameAreaButton = element(by.id("id-delete-name"));
 
@@ -15,6 +16,8 @@ var ConceptPage = function () {
     this.newConceptLink = element(by.id('id-new-concept'));
     this.conceptId = $('#id_concept_id');
     this.addNameSynonymLink = $('#add-name-synonym');
+    this.conceptClass = $('#id_concept_class');
+    this.conceptDatatype = $('#id_datatype');
 
     this.parentSourceLink = element(by.css(".resource-label.source"));
 
@@ -65,7 +68,8 @@ var ConceptPage = function () {
     };
 
     this.fillDescriptionField = function () {
-        this.descriptionField.sendKeys(chance.word({length: 4}))
+        this.descriptionField.sendKeys(chance.word({length: 4}));
+        this.descriptionTypeField.sendKeys('None');
     };
 
     this.clearDescriptionField = function () {
@@ -90,6 +94,8 @@ var ConceptPage = function () {
         this.conceptsLink.click();
         this.newConceptLink.click();
         this.setConceptId(this.getRandomId());
+        this.conceptClass.sendKeys('Misc');
+        this.conceptDatatype.sendKeys('None');
     };
 
     this.setConceptId = function (id) {
@@ -127,14 +133,14 @@ var ConceptPage = function () {
     };
 
     this.setNameType = function (item, option) {
-        item.element(by.model('name.name_type')).element(by.cssContainingText("option", option)).click();
+        item.element(by.model('name.name_type')).clear().sendKeys(option);
     };
 
     this.setNameLocale = function (item, option) {
         if (option === undefined) {
-            option = "English [en]"
+            option = "en"
         }
-        item.element(by.model('name.locale')).element(by.cssContainingText("option", option)).click();
+        item.element(by.model('name.locale')).clear().sendKeys(option);
     };
 
     this.setName = function (item, nameText, nameType, localePreferred, nameLocale) {
@@ -155,7 +161,7 @@ var ConceptPage = function () {
     this.createConceptWithFullySpecifiedName = function (id, name) {
         this.prepareToCreateConcept();
         this.setConceptId(id);
-        this.setName(this.getNamesAndSynonyms().first(), name, "Fully Specified", true, "English [en]");
+        this.setName(this.getNamesAndSynonyms().first(), name, "Fully Specified", true, "en");
         this.fillDescriptionField();
         this.createConcept();
     };
